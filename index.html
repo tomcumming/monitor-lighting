@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+}
+
+a.button {
+    background-color: #00000088;
+    border: 1px solid white;
+    color: white;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 12px;
+    text-decoration: none;
+}
+
+input[type="color"] {
+    width: 120px;
+    height: 80px;
+}
+    </style>
+    <script type="module">
+const domReady = new Promise(res => {
+    window.addEventListener('DOMContentLoaded', res);
+    if(document.readyState === 'complete') res();
+});
+
+async function start() {
+    await domReady;
+
+    const bc = new BroadcastChannel('colour');
+    const picker = document.getElementById('color-picker');
+
+    if(picker instanceof HTMLInputElement) {
+        const onChange = colour => {
+            document.body.style.backgroundColor = colour;
+            if(picker.value !== colour)  picker.value = colour;
+            picker.value = colour;
+        }
+
+        const initialColour = localStorage.getItem('colour');
+        if(typeof initialColour === 'string') {
+            picker.value = initialColour;
+            onChange(initialColour);
+        }
+
+        bc.addEventListener('message', m => onChange(m.data));
+
+        picker.addEventListener('input', () => {
+            console.log('sending')
+
+            bc.postMessage(picker.value);
+            onChange(picker.value);
+            localStorage.setItem('colour', picker.value);
+        });
+    } else {
+        throw new Error(`Can't find element in page`);
+    }
+}
+
+start();
+    </script>
+</head>
+
+<body>
+    <input id="color-picker" type="color" />
+    <a href="#another" target="_blank" class="button">Open Another Window</a>
+</body>
+
+</html>
